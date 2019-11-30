@@ -51,30 +51,39 @@
   };
 </script>
 
-  <meta name="description" content="积木杨的博客">
-<meta property="og:type" content="website">
-<meta property="og:title" content="积木杨">
-<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;index.html">
+  <meta name="description" content="为什么需要红黑树红黑树是一种特殊的二叉搜索树。因为它的时间复杂度也是 O(h)，h是树的高度。而红黑树是一种较矮的二叉搜索树，它的定义确保了从根到叶子的任何一条路径会比其他路径长出2倍，因而是近似于平衡的。本文使用golang实现红黑树的基本方法，全部代码加注释不到400行，主要的思路来自《算法导论》第13章红黑树。 红黑树的定义 红黑原则: 每个节点是红色或者黑色 黑根原则: 根节点(root)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="红黑树和Go实现">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;11&#x2F;24&#x2F;%E7%BA%A2%E9%BB%91%E6%A0%91%E5%92%8CGo%E5%AE%9E%E7%8E%B0&#x2F;index.html">
 <meta property="og:site_name" content="积木杨">
-<meta property="og:description" content="积木杨的博客">
+<meta property="og:description" content="为什么需要红黑树红黑树是一种特殊的二叉搜索树。因为它的时间复杂度也是 O(h)，h是树的高度。而红黑树是一种较矮的二叉搜索树，它的定义确保了从根到叶子的任何一条路径会比其他路径长出2倍，因而是近似于平衡的。本文使用golang实现红黑树的基本方法，全部代码加注释不到400行，主要的思路来自《算法导论》第13章红黑树。 红黑树的定义 红黑原则: 每个节点是红色或者黑色 黑根原则: 根节点(root)">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;rbtree&#x2F;1.jpg">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;rbtree&#x2F;2.jpg">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;rbtree&#x2F;3.jpg">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;rbtree&#x2F;4.jpg">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;rbtree&#x2F;5.jpg">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;rbtree&#x2F;6.jpg">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;rbtree&#x2F;7.jpg">
+<meta property="og:updated_time" content="2019-11-30T13:14:12.133Z">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;rbtree&#x2F;1.jpg">
 
-<link rel="canonical" href="http://yoursite.com/">
+<link rel="canonical" href="http://yoursite.com/2019/11/24/%E7%BA%A2%E9%BB%91%E6%A0%91%E5%92%8CGo%E5%AE%9E%E7%8E%B0/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome: true,
-    isPost: false,
+    isHome: false,
+    isPost: true,
     isPage: false,
     isArchive: false
   };
 </script>
 
-  <title>积木杨</title>
+  <title>红黑树和Go实现 | 积木杨</title>
   
 
 
@@ -169,10 +178,10 @@
             
 
   <div class="posts-expand">
-        
+      
   
   
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/24/%E7%BA%A2%E9%BB%91%E6%A0%91%E5%92%8CGo%E5%AE%9E%E7%8E%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -186,8 +195,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/11/24/%E7%BA%A2%E9%BB%91%E6%A0%91%E5%92%8CGo%E5%AE%9E%E7%8E%B0/" class="post-title-link" itemprop="url">红黑树和Go实现</a>
+          红黑树和Go实现
         </h1>
 
         <div class="post-meta">
@@ -208,6 +216,13 @@
               </span>
 
           
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
   
   <span class="post-meta-item">
     
@@ -232,7 +247,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="为什么需要红黑树"><a href="#为什么需要红黑树" class="headerlink" title="为什么需要红黑树"></a>为什么需要红黑树</h2><p>红黑树是一种特殊的二叉搜索树。因为它的时间复杂度也是 O(h)，h是树的高度。而红黑树是一种较矮的二叉搜索树，它的定义确保了从根到叶子的任何一条路径会比其他路径长出2倍，因而是近似于平衡的。<br>本文使用golang实现红黑树的基本方法，全部代码加注释不到400行，主要的思路来自《算法导论》第13章红黑树。</p>
+        <h2 id="为什么需要红黑树"><a href="#为什么需要红黑树" class="headerlink" title="为什么需要红黑树"></a>为什么需要红黑树</h2><p>红黑树是一种特殊的二叉搜索树。因为它的时间复杂度也是 O(h)，h是树的高度。而红黑树是一种较矮的二叉搜索树，它的定义确保了从根到叶子的任何一条路径会比其他路径长出2倍，因而是近似于平衡的。<br>本文使用golang实现红黑树的基本方法，全部代码加注释不到400行，主要的思路来自《算法导论》第13章红黑树。</p>
 <h2 id="红黑树的定义"><a href="#红黑树的定义" class="headerlink" title="红黑树的定义"></a>红黑树的定义</h2><ol>
 <li>红黑原则: 每个节点是红色或者黑色</li>
 <li>黑根原则: 根节点(root)和叶子节点(LEAF)为黑色</li>
@@ -319,414 +334,30 @@
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	tree := <span class="built_in">new</span>(RBTree).Init()</span><br><span class="line">	arr := <span class="built_in">make</span>([]<span class="keyword">int</span>, <span class="number">100</span>)</span><br><span class="line">	rand.Seed(time.Now().Unix())</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">100</span>; i++ &#123;</span><br><span class="line">		arr[i] = rand.Intn(<span class="number">1000</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, e := <span class="keyword">range</span> arr &#123;</span><br><span class="line">		fmt.Printf(<span class="string">"insert: %d \n"</span>, e)</span><br><span class="line">		tree.Insert(<span class="keyword">int64</span>(e))</span><br><span class="line">		err := tree.Check()</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			fmt.Println(err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, e := <span class="keyword">range</span> arr[<span class="number">40</span>:<span class="number">80</span>] &#123;</span><br><span class="line">		fmt.Printf(<span class="string">"delete: %d \n"</span>, e)</span><br><span class="line">		tree.Delete(<span class="keyword">int64</span>(e))</span><br><span class="line">		err := tree.Check()</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			fmt.Println(err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>本文的全部代码在 <a href="https://github.com/jimuyang/lets-go/blob/master/algorithms/RedBlackTree.go" target="_blank" rel="noopener">https://github.com/jimuyang/lets-go/blob/master/algorithms/RedBlackTree.go</a> 欢迎意见和交流😊</p>
 
-      
     </div>
 
     
     
     
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
 
         
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/24/Java%E8%B8%A9%E5%9D%91%E5%8F%B2/">
 
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Jimu Yang">
-      <meta itemprop="description" content="积木杨的博客">
-    </span>
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/2019/11/24/Java%E8%B8%A9%E5%9D%91%E5%8F%B2/" rel="next" title="Java踩坑史">
+                  <i class="fa fa-chevron-left"></i> Java踩坑史
+                </a>
+            </div>
 
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="积木杨">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/11/24/Java%E8%B8%A9%E5%9D%91%E5%8F%B2/" class="post-title-link" itemprop="url">Java踩坑史</a>
-        </h1>
+            <span class="post-nav-divider"></span>
 
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-11-24 01:58:08" itemprop="dateCreated datePublished" datetime="2019-11-24T01:58:08+08:00">2019-11-24</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-11-29 14:15:01" itemprop="dateModified" datetime="2019-11-29T14:15:01+08:00">2019-11-29</time>
-              </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Disqus：</span>
-    
-    <a title="disqus" href="/2019/11/24/Java%E8%B8%A9%E5%9D%91%E5%8F%B2/#comments" itemprop="discussionUrl">
-      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2019/11/24/Java踩坑史/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
+            <div class="post-nav-prev post-nav-item">
+            </div>
+          </div>
       </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/17/%E7%AE%80%E6%B4%81%E8%AF%B4%E6%98%8EJava%E5%8F%82%E6%95%B0%E4%BC%A0%E9%80%92/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Jimu Yang">
-      <meta itemprop="description" content="积木杨的博客">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="积木杨">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/11/17/%E7%AE%80%E6%B4%81%E8%AF%B4%E6%98%8EJava%E5%8F%82%E6%95%B0%E4%BC%A0%E9%80%92/" class="post-title-link" itemprop="url">简洁说明Java参数传递</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-11-17 16:05:36" itemprop="dateCreated datePublished" datetime="2019-11-17T16:05:36+08:00">2019-11-17</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-11-24 01:49:24" itemprop="dateModified" datetime="2019-11-24T01:49:24+08:00">2019-11-24</time>
-              </span>
-
-          
-  
-  <span class="post-meta-item">
     
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Disqus：</span>
-    
-    <a title="disqus" href="/2019/11/17/%E7%AE%80%E6%B4%81%E8%AF%B4%E6%98%8EJava%E5%8F%82%E6%95%B0%E4%BC%A0%E9%80%92/#comments" itemprop="discussionUrl">
-      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2019/11/17/简洁说明Java参数传递/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="Java程序猿经常撕的一个问题：Java到底是值传递还是引用传递？"><a href="#Java程序猿经常撕的一个问题：Java到底是值传递还是引用传递？" class="headerlink" title="Java程序猿经常撕的一个问题：Java到底是值传递还是引用传递？"></a>Java程序猿经常撕的一个问题：Java到底是值传递还是引用传递？</h1><ul>
-<li>甲说，Java都是值传递。我同意</li>
-<li>乙说，Java参数传递非基本类型(引用类型)时，传递的是引用。嗯…, 我点了点头</li>
-<li>丙说，对基本类型Java传递值的copy，对非基本类型(引用类型)Java传递地址的copy。解释了甲的意思，我点个赞。 </li>
-</ul>
-<p>不用吵了，其实大家都懂是怎么回事，很多时候只是概念和表达上的歧义，这里我取个巧，用一套“统一”的理论来简洁解释一下 </p>
-<h2 id="Java中的引用"><a href="#Java中的引用" class="headerlink" title="Java中的引用"></a>Java中的引用</h2><p>先问是什么，一等重要的事就是搞清楚到底Java中的引用是啥？</p>
-<blockquote>
-<p>留给官方说明  </p>
-</blockquote>
-<!-- 这里放一张栈堆图 -->
-
-<p>在“统一”理论指导下，不妨将引用类型看作是一种“特殊”的基本类型。仅仅特殊在：<strong>引用类型的“值”是一个地址</strong>。<br>现在看一下赋值：原来就是<em>值</em>的copy</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 赋零值</span></span><br><span class="line"><span class="keyword">int</span> a = <span class="number">0</span>;        <span class="comment">// </span></span><br><span class="line">Object o = <span class="keyword">null</span>;  <span class="comment">// 可以认为null就是类似0x0000的地址</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 赋值</span></span><br><span class="line">a = <span class="number">1</span>;            <span class="comment">// a的值为1</span></span><br><span class="line">o = <span class="keyword">new</span> Object(); <span class="comment">// o的"值"是一个地址 可以认为new返回的就是堆内地址</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 变量间赋值</span></span><br><span class="line"><span class="keyword">int</span> a1 = a;       <span class="comment">// 将a的值(1)copy给a1</span></span><br><span class="line">Object o1 = o;    <span class="comment">// 将o的"值"(地址)copy给o1</span></span><br></pre></td></tr></table></figure>
-<p>再看看==：原来就是<em>值</em>是否相等</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> a = <span class="number">1</span>;</span><br><span class="line">Object o = <span class="keyword">new</span> Object();</span><br><span class="line"></span><br><span class="line">a == <span class="number">2</span>;           <span class="comment">// a的值是否等于2</span></span><br><span class="line">o == <span class="keyword">new</span> Object();<span class="comment">// o的"值"(地址)是否和new返回的地址相等</span></span><br></pre></td></tr></table></figure>
-<p>final变量的语义也可以统一为变量的“值”初始化后不可更改</p>
-<h2 id="Java的参数传递"><a href="#Java的参数传递" class="headerlink" title="Java的参数传递"></a>Java的参数传递</h2><p>我这样来描述Java的参数传递过程：<strong>将实参赋值给形参</strong>。赋值的本质就是<strong>值copy</strong>。所以回到问题本身，我认为：<strong>Java的参数传递都是值传递</strong>。这样的描述是比较准确也比较体现<strong>值copy</strong>的本质的。<br>用一段简洁的代码来说明：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">func</span><span class="params">(<span class="keyword">int</span> a, Object o)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// break point</span></span><br><span class="line">    a = <span class="number">2</span>;</span><br><span class="line">    o = <span class="keyword">new</span> Object();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a = <span class="number">1</span>;</span><br><span class="line">    Object o = <span class="keyword">new</span> Object();</span><br><span class="line">    func(a, o);             <span class="comment">// 帧栈图1</span></span><br><span class="line">    func(<span class="number">1</span>, <span class="keyword">new</span> Object());  <span class="comment">// 帧栈图2</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>断点处线程帧栈一览：<br><img src="/images/javaargpass1.jpg" alt=""><br><img src="/images/javaargpass2.jpg" alt=""> </p>
-<p>通过断点后 func方法内执行这2行代码，只会修改func方法栈内的变量a和o的<strong>值</strong>，而不会对main方法栈内的a和o有任何影响，这也是copy的精髓</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">a = <span class="number">2</span>;</span><br><span class="line">o = <span class="keyword">new</span> Object();</span><br></pre></td></tr></table></figure>
-
-<h2 id="其他说明"><a href="#其他说明" class="headerlink" title="其他说明"></a>其他说明</h2><ul>
-<li></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/10/%E5%87%A0%E7%A7%8DIO/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Jimu Yang">
-      <meta itemprop="description" content="积木杨的博客">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="积木杨">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/11/10/%E5%87%A0%E7%A7%8DIO/" class="post-title-link" itemprop="url">几种IO</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-11-10 17:36:47" itemprop="dateCreated datePublished" datetime="2019-11-10T17:36:47+08:00">2019-11-10</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-11-24 01:21:14" itemprop="dateModified" datetime="2019-11-24T01:21:14+08:00">2019-11-24</time>
-              </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Disqus：</span>
-    
-    <a title="disqus" href="/2019/11/10/%E5%87%A0%E7%A7%8DIO/#comments" itemprop="discussionUrl">
-      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2019/11/10/几种IO/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="学习Linux环境下的几种IO模型和一些概念"><a href="#学习Linux环境下的几种IO模型和一些概念" class="headerlink" title="学习Linux环境下的几种IO模型和一些概念"></a>学习Linux环境下的几种IO模型和一些概念</h1><h2 id="先列学习和引用资料"><a href="#先列学习和引用资料" class="headerlink" title="先列学习和引用资料"></a>先列学习和引用资料</h2><ul>
-<li>Richard Stevens的《UNIX® Network Programming Volume 1, Third Edition: The Sockets Networking》6.2 IO Models</li>
-<li>博客：IO - 同步，异步，阻塞，非阻塞 （亡羊补牢篇） <a href="https://blog.csdn.net/historyasamirror/article/details/5778378" target="_blank" rel="noopener">https://blog.csdn.net/historyasamirror/article/details/5778378</a></li>
-<li>Java NIO Tutorial: <a href="http://tutorials.jenkov.com/java-nio/index.html" target="_blank" rel="noopener">http://tutorials.jenkov.com/java-nio/index.html</a></li>
-</ul>
-<h2 id="Linux-IO-Model-（注意和Java中的概念区分"><a href="#Linux-IO-Model-（注意和Java中的概念区分" class="headerlink" title="Linux IO Model （注意和Java中的概念区分"></a>Linux IO Model （注意和Java中的概念区分</h2><blockquote>
-<p>引用自 Richard Stevens “UNIX® Network Programming Volume 1, Third Edition: The Sockets Networking” </p>
-</blockquote>
-<ul>
-<li>Blocking IO       阻塞IO</li>
-<li>NoneBlocking IO   非阻塞IO</li>
-<li>IO Multiplexing   IO多路复用</li>
-<li>Signal Driven IO  信号驱动IO（少见 不做了解</li>
-<li>Asynchronous IO   异步IO</li>
-</ul>
-<h3 id="做些说明："><a href="#做些说明：" class="headerlink" title="做些说明："></a>做些说明：</h3><ol>
-<li><p>缓存IO/直接IO<br>这是一种对IO的分类 缓存IO又称标准IO，大多数文件系统的默认I/O操作都是缓存I/O。在Linux的缓存I/O机制中，数据先从磁盘复制到内核空间的缓冲区，然后从内核空间缓冲区复制到应用程序的地址空间。 </p>
-</li>
-<li><p>IO相关对象和阶段<br>对于一个network IO而言，一般会涉及到2个系统对象，一个是使用这个IO的进程/线程，一个是系统内核（kernel）<br>当一个read操作发生时，会经历2个阶段：</p>
-</li>
-</ol>
-<ul>
-<li>等待数据准备好 wait for the data to be ready</li>
-<li>将数据从kernel复制到用户进程中 copy data from kernel to process<br>不同的IO模型的区分正是在这2个阶段的行为不同  </li>
-</ul>
-<h3 id="Blocking-IO-阻塞IO"><a href="#Blocking-IO-阻塞IO" class="headerlink" title="Blocking IO 阻塞IO"></a>Blocking IO 阻塞IO</h3><p><img src="/images/BlockingIOModel.gif" alt=""><br>最大的特点 用户进程从read调用开始阻塞，直到<strong>数据准备好</strong>并<strong>复制到用户进程中</strong>（即read调用返回）之后，阻塞才会结束。</p>
-<h3 id="NoneBlocking-IO-非阻塞IO"><a href="#NoneBlocking-IO-非阻塞IO" class="headerlink" title="NoneBlocking IO 非阻塞IO"></a>NoneBlocking IO 非阻塞IO</h3><p>linux下，可以通过设置socket使其变为non-blocking。当对一个non-blocking socket执行读操作时，流程是这个样子：<br><img src="/images/NonblockingIOModel.gif" alt=""><br>最大的特点 在<strong>数据准备好</strong>之前的read调用会立即返回一个error（类似数据还没有准备好），直到<strong>数据准备好</strong>之后的read调用会阻塞并将数据<strong>复制到用户进程中</strong>，read结束</p>
-<h3 id="IO-Multiplexing-IO多路复用"><a href="#IO-Multiplexing-IO多路复用" class="headerlink" title="IO Multiplexing IO多路复用"></a>IO Multiplexing IO多路复用</h3><p>使用select/poll/epoll实现 本质上和阻塞IO一样，但是通过维护一个fd集合来一次监控多个socket，从而大大提高系统并发数，注意到获取到就绪的fd之后还是需要阻塞的将数据<strong>复制到用户进程中</strong></p>
-<ul>
-<li>select: fd数组 轮询 O(n) 限连接数</li>
-<li>poll: fd链表 轮询 O(n) 无连接数限制 </li>
-<li>epoll: event poll 事件驱动 O(1) 只关心活跃的fd<br><img src="/images/IOMultiplexing.gif" alt=""></li>
-</ul>
-<h3 id="Asynchronous-IO-异步IO"><a href="#Asynchronous-IO-异步IO" class="headerlink" title="Asynchronous IO 异步IO"></a>Asynchronous IO 异步IO</h3><p>真正的异步IO是没有环节阻塞的，直到<strong>数据准备好</strong>并<strong>复制到用户进程中</strong>之后才会通知用户进程直接使用<br><img src="/images/AsyncIO.gif" alt=""></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/10/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Jimu Yang">
-      <meta itemprop="description" content="积木杨的博客">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="积木杨">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/11/10/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2019-11-10 15:03:49 / 修改时间：17:37:17" itemprop="dateCreated datePublished" datetime="2019-11-10T15:03:49+08:00">2019-11-10</time>
-            </span>
-
-          
-  
-  <span class="post-meta-item">
-    
-      <span class="post-meta-item-icon">
-        <i class="fa fa-comment-o"></i>
-      </span>
-      <span class="post-meta-item-text">Disqus：</span>
-    
-    <a title="disqus" href="/2019/11/10/hello-world/#comments" itemprop="discussionUrl">
-      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2019/11/10/hello-world/" itemprop="commentCount"></span>
-    </a>
-  </span>
-  
-  
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>第一篇博客 记录 Hexo + NexT搭建个人博客的过程</p>
-<ol>
-<li><p>安装<a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>并初始化项目</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ npm install -g hexo-cli</span><br><span class="line">$ hexo init &lt;project-name&gt; <span class="comment"># 这里我使用blog</span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>安装<a href="http://theme-next.iissnan.com" target="_blank" rel="noopener">NexT</a>主题</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> &lt;project-name&gt; <span class="comment"># cd blog</span></span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/hexo-theme/hexo-theme-next themes/next</span><br></pre></td></tr></table></figure>
-<p>修改顶层 _config.yml:<br>theme: landscape<br>=&gt; theme: next</p>
-</li>
-<li><p>启动博客 如果一切顺利可以看到 这篇博客下部的内容: Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>!</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo s</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>发布博客到github page<br>修改顶层 _config.yml deploy部分<br>安装 hexo-deployer-git</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">deploy:</span><br><span class="line">  type: git</span><br><span class="line">  repo: https://github.com/jimuyang/jimuyang.github.io</span><br><span class="line">  # https://github.com/&lt;username&gt;/&lt;project&gt;</span><br><span class="line">  # branch: gh-pages</span><br></pre></td></tr></table></figure>
-<p>deploy到github page</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo clean &amp;&amp; hexo deploy</span><br></pre></td></tr></table></figure>
-
-</li>
-</ol>
-<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
   </article>
   
   
@@ -734,12 +365,16 @@
 
   </div>
 
-  
-
-
 
           </div>
           
+    
+  <div class="comments" id="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
 
         </div>
           
@@ -764,6 +399,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么需要红黑树"><span class="nav-number">1.</span> <span class="nav-text">为什么需要红黑树</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#红黑树的定义"><span class="nav-number">2.</span> <span class="nav-text">红黑树的定义</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#一些解读："><span class="nav-number">2.1.</span> <span class="nav-text">一些解读：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#快速用Golang实现吧"><span class="nav-number">3.</span> <span class="nav-text">快速用Golang实现吧</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#定义红黑树的节点"><span class="nav-number">3.1.</span> <span class="nav-text">定义红黑树的节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定义红黑树"><span class="nav-number">3.2.</span> <span class="nav-text">定义红黑树</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#红黑树的查询、最大值、最小值"><span class="nav-number">3.3.</span> <span class="nav-text">红黑树的查询、最大值、最小值</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Find"><span class="nav-number">3.3.1.</span> <span class="nav-text">Find</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Min"><span class="nav-number">3.3.2.</span> <span class="nav-text">Min</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#minNode"><span class="nav-number">3.3.3.</span> <span class="nav-text">minNode</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#红黑树的测试"><span class="nav-number">3.4.</span> <span class="nav-text">红黑树的测试</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Check"><span class="nav-number">3.4.1.</span> <span class="nav-text">Check</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#红黑树的旋转"><span class="nav-number">3.5.</span> <span class="nav-text">红黑树的旋转</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#leftRotate"><span class="nav-number">3.5.1.</span> <span class="nav-text">leftRotate</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#红黑树的插入"><span class="nav-number">3.6.</span> <span class="nav-text">红黑树的插入</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Insert"><span class="nav-number">3.6.1.</span> <span class="nav-text">Insert</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#insertFixup"><span class="nav-number">3.6.2.</span> <span class="nav-text">insertFixup</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#红黑树的删除"><span class="nav-number">3.7.</span> <span class="nav-text">红黑树的删除</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#transplant"><span class="nav-number">3.7.1.</span> <span class="nav-text">transplant</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Delete"><span class="nav-number">3.7.2.</span> <span class="nav-text">Delete</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#deleteFixup"><span class="nav-number">3.7.3.</span> <span class="nav-text">deleteFixup</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实现测试"><span class="nav-number">4.</span> <span class="nav-text">实现测试</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -898,6 +534,27 @@
   }
   // defer loading until the whole page loading is completed
   window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  function loadComments() {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: {page: {
+            url: "http://yoursite.com/2019/11/24/%E7%BA%A2%E9%BB%91%E6%A0%91%E5%92%8CGo%E5%AE%9E%E7%8E%B0/",
+            identifier: "2019/11/24/红黑树和Go实现/",
+            title: "红黑树和Go实现"
+          }
+        }
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://积木杨.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  }
+    window.addEventListener('load', loadComments, false);
 </script>
 
 </body>
