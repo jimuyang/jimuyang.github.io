@@ -51,14 +51,14 @@
   };
 </script>
 
-  <meta name="description" content="list.subList  short.equals(1)">
+  <meta name="description" content="list.subList相关以java.util.ArrayList为例：java.util.ArrayList#subList方法返回的结果实际类型为：java.util.ArrayList.SubList。它是ArrayList的内部类，持有ArrayList的this，当对SubList进行写操作时，都会检查自己保存的modCount和ArrayList.this.modCount是否一致，">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java踩坑史">
 <meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;11&#x2F;24&#x2F;Java%E8%B8%A9%E5%9D%91%E5%8F%B2&#x2F;index.html">
 <meta property="og:site_name" content="积木杨">
-<meta property="og:description" content="list.subList  short.equals(1)">
+<meta property="og:description" content="list.subList相关以java.util.ArrayList为例：java.util.ArrayList#subList方法返回的结果实际类型为：java.util.ArrayList.SubList。它是ArrayList的内部类，持有ArrayList的this，当对SubList进行写操作时，都会检查自己保存的modCount和ArrayList.this.modCount是否一致，">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-11-30T13:37:30.047Z">
+<meta property="og:updated_time" content="2019-12-12T09:53:04.326Z">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="http://yoursite.com/2019/11/24/Java%E8%B8%A9%E5%9D%91%E5%8F%B2/">
@@ -204,7 +204,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-11-30 21:37:30" itemprop="dateModified" datetime="2019-11-30T21:37:30+08:00">2019-11-30</time>
+                <time title="修改时间：2019-12-12 17:53:04" itemprop="dateModified" datetime="2019-12-12T17:53:04+08:00">2019-12-12</time>
               </span>
 
           
@@ -239,12 +239,16 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <ol>
-<li><p>list.subList</p>
-</li>
-<li><p>short.equals(1)</p>
-</li>
-</ol>
+        <h2 id="list-subList相关"><a href="#list-subList相关" class="headerlink" title="list.subList相关"></a>list.subList相关</h2><p>以java.util.ArrayList为例：<code>java.util.ArrayList#subList</code>方法返回的结果实际类型为：<code>java.util.ArrayList.SubList</code>。它是ArrayList的内部类，持有ArrayList的<code>this</code>，当对SubList进行<code>写</code>操作时，都会检查自己保存的<code>modCount</code>和<code>ArrayList.this.modCount</code>是否一致，这要求了在执行了list.subList()之后，不可以对list进行<code>写</code>操作（会修改modCount），否则subList的<code>写</code>操作就会报ConcurrentModificationException。</p>
+<h3 id="SubList检查modCount源码"><a href="#SubList检查modCount源码" class="headerlink" title="SubList检查modCount源码"></a>SubList检查modCount源码</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">checkForComodification</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (ArrayList.<span class="keyword">this</span>.modCount != <span class="keyword">this</span>.modCount)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> ConcurrentModificationException();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="short-equals-1"><a href="#short-equals-1" class="headerlink" title="short.equals(1)"></a>short.equals(1)</h2><h2 id="三元运算符的类型转换"><a href="#三元运算符的类型转换" class="headerlink" title="三元运算符的类型转换"></a>三元运算符的类型转换</h2><p>特别简单的2行代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Integer i = <span class="keyword">null</span>;</span><br><span class="line">        Integer j = <span class="keyword">true</span> ? i : <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>然而第二行代码会报一个NPE。。。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ java Test</span><br><span class="line">Exception <span class="keyword">in</span> thread <span class="string">"main"</span> java.lang.NullPointerException</span><br><span class="line">        at Test.main(Test.java:4)</span><br></pre></td></tr></table></figure>
+<p>用javap可以明显的看到原因：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">javap -c Test</span><br><span class="line">Compiled from <span class="string">"Test.java"</span></span><br><span class="line">public class Test &#123;</span><br><span class="line">  public Test();</span><br><span class="line">    Code:</span><br><span class="line">       0: aload_0</span><br><span class="line">       1: invokespecial <span class="comment">#1                  // Method java/lang/Object."&lt;init&gt;":()V</span></span><br><span class="line">       4: <span class="built_in">return</span></span><br><span class="line"></span><br><span class="line">  public static void main(java.lang.String[]);</span><br><span class="line">    Code:</span><br><span class="line">       0: aconst_null</span><br><span class="line">       1: astore_1</span><br><span class="line">       2: aload_1</span><br><span class="line">       3: invokevirtual <span class="comment">#2                  // Method java/lang/Integer.intValue:()I</span></span><br><span class="line">       6: invokestatic  <span class="comment">#3                  // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;</span></span><br><span class="line">       9: astore_2</span><br><span class="line">      10: <span class="built_in">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>明显的看到执行了<code>Method java/lang/Integer.intValue:()I</code>，再测试<code>Double</code> <code>Float</code> <code>Boolean</code>都发现了这个问题。<br>那么可以得到结论:如果三元运算符<code>:</code>两侧为基本类型和包装类型，那么java编译执行时会将<code>包装类型拆箱处理</code>，这一点有点反直觉也很坑，使用三元运算符需要注意。</p>
 
     </div>
 
@@ -314,6 +318,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#list-subList相关"><span class="nav-number">1.</span> <span class="nav-text">list.subList相关</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SubList检查modCount源码"><span class="nav-number">1.1.</span> <span class="nav-text">SubList检查modCount源码</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#short-equals-1"><span class="nav-number">2.</span> <span class="nav-text">short.equals(1)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三元运算符的类型转换"><span class="nav-number">3.</span> <span class="nav-text">三元运算符的类型转换</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
