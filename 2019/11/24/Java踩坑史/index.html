@@ -52,13 +52,14 @@
 </script>
 
   <meta name="description" content="list.subList相关以java.util.ArrayList为例：java.util.ArrayList#subList方法返回的结果实际类型为：java.util.ArrayList.SubList。它是ArrayList的内部类，持有ArrayList的this，当对SubList进行写操作时，都会检查自己保存的modCount和ArrayList.this.modCount是否一致，">
+<meta name="keywords" content="Java">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java踩坑史">
 <meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;11&#x2F;24&#x2F;Java%E8%B8%A9%E5%9D%91%E5%8F%B2&#x2F;index.html">
 <meta property="og:site_name" content="积木杨">
 <meta property="og:description" content="list.subList相关以java.util.ArrayList为例：java.util.ArrayList#subList方法返回的结果实际类型为：java.util.ArrayList.SubList。它是ArrayList的内部类，持有ArrayList的this，当对SubList进行写操作时，都会检查自己保存的modCount和ArrayList.this.modCount是否一致，">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-12-12T09:55:07.371Z">
+<meta property="og:updated_time" content="2019-12-22T15:09:27.193Z">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="http://yoursite.com/2019/11/24/Java%E8%B8%A9%E5%9D%91%E5%8F%B2/">
@@ -143,6 +144,11 @@
     <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
 
   </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
@@ -204,7 +210,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-12-12 17:55:07" itemprop="dateModified" datetime="2019-12-12T17:55:07+08:00">2019-12-12</time>
+                <time title="修改时间：2019-12-22 23:09:27" itemprop="dateModified" datetime="2019-12-22T23:09:27+08:00">2019-12-22</time>
               </span>
 
           
@@ -258,6 +264,9 @@
     
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+          </div>
 
         
 
@@ -333,9 +342,15 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">9</span>
           <span class="site-state-item-name">日志</span>
         </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
 </div>
