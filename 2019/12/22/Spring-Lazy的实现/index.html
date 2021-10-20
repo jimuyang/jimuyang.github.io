@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"jimuyang.github.io","root":"/blog/","images":"/blog/images","scheme":"Pisces","darkmode":false,"version":"8.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="@Lazy的用途12345678910111213141516171819202122232425&#x2F;** * Indicates whether a bean is to be lazily initialized. * * &lt;p&gt;May be used on any class directly or indirectly annotated with &amp;#123;@link * o">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring @Lazy的实现">
+<meta property="og:url" content="https://jimuyang.github.io/blog/2019/12/22/Spring-Lazy%E7%9A%84%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="积木杨">
+<meta property="og:description" content="@Lazy的用途12345678910111213141516171819202122232425&#x2F;** * Indicates whether a bean is to be lazily initialized. * * &lt;p&gt;May be used on any class directly or indirectly annotated with &amp;#123;@link * o">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-12-22T07:26:12.000Z">
+<meta property="article:modified_time" content="2021-10-20T17:27:16.291Z">
+<meta property="article:author" content="Jimu Yang">
+<meta property="article:tag" content="Spring">
+<meta property="article:tag" content="源码">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://jimuyang.github.io/blog/2019/12/22/Spring-Lazy%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://jimuyang.github.io/blog/2019/12/22/Spring-Lazy%E7%9A%84%E5%AE%9E%E7%8E%B0/","path":"2019/12/22/Spring-Lazy的实现/","title":"Spring @Lazy的实现"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Spring @Lazy的实现 | 积木杨</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">积木杨</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-schedule"><a href="/blog/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Lazy%E7%9A%84%E7%94%A8%E9%80%94"><span class="nav-number">1.</span> <span class="nav-text">@Lazy的用途</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%86%E5%88%AB%E5%AD%A6%E4%B9%A0-Lazy%E5%9C%A8%E8%BF%99%E5%87%A0%E4%B8%AA%E5%9C%BA%E6%99%AF%E4%B8%8B%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">分别学习@Lazy在这几个场景下如何实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A3%B0%E6%98%8EBean%E5%BB%B6%E8%BF%9F%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">2.1.</span> <span class="nav-text">声明Bean延迟初始化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%B3%E6%98%8E%E5%BB%B6%E8%BF%9F%E6%B3%A8%E5%85%A5"><span class="nav-number">2.2.</span> <span class="nav-text">申明延迟注入</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jimu Yang</p>
+  <div class="site-description" itemprop="description">积木杨的博客</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/blog/archives/">
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/blog/tags/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jimuyang.github.io/blog/2019/12/22/Spring-Lazy%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="name" content="Jimu Yang">
+      <meta itemprop="description" content="积木杨的博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="积木杨">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring @Lazy的实现
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-12-22 15:26:12" itemprop="dateCreated datePublished" datetime="2019-12-22T15:26:12+08:00">2019-12-22</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-10-21 01:27:16" itemprop="dateModified" datetime="2021-10-21T01:27:16+08:00">2021-10-21</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="Lazy的用途"><a href="#Lazy的用途" class="headerlink" title="@Lazy的用途"></a>@Lazy的用途</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * Indicates whether a bean is to be lazily initialized.</span><br><span class="line"> *</span><br><span class="line"> * &lt;p&gt;May be used on any class directly or indirectly annotated with &#123;@link</span><br><span class="line"> * org.springframework.stereotype.Component @Component&#125; or on methods annotated with</span><br><span class="line"> * &#123;@link Bean @Bean&#125;.</span><br><span class="line"> *</span><br><span class="line"> * &lt;p&gt;If this annotation is not present on a &#123;@code @Component&#125; or &#123;@code @Bean&#125; definition,</span><br><span class="line"> * eager initialization will occur. If present and set to &#123;@code true&#125;, the &#123;@code @Bean&#125; or</span><br><span class="line"> * &#123;@code @Component&#125; will not be initialized until referenced by another bean or explicitly</span><br><span class="line"> * retrieved from the enclosing &#123;@link org.springframework.beans.factory.BeanFactory</span><br><span class="line"> * BeanFactory&#125;. If present and set to &#123;@code false&#125;, the bean will be instantiated on</span><br><span class="line"> * startup by bean factories that perform eager initialization of singletons.</span><br><span class="line"> *</span><br><span class="line"> * &lt;p&gt;If Lazy is present on a &#123;@link Configuration @Configuration&#125; class, this</span><br><span class="line"> * indicates that all &#123;@code @Bean&#125; methods within that &#123;@code @Configuration&#125;</span><br><span class="line"> * should be lazily initialized. If &#123;@code @Lazy&#125; is present and false on a &#123;@code @Bean&#125;</span><br><span class="line"> * method within a &#123;@code @Lazy&#125;-annotated &#123;@code @Configuration&#125; class, this indicates</span><br><span class="line"> * overriding the &#x27;default lazy&#x27; behavior and that the bean should be eagerly initialized.</span><br><span class="line"> *</span><br><span class="line"> * &lt;p&gt;In addition to its role for component initialization, this annotation may also be placed</span><br><span class="line"> * on injection points marked with &#123;@link org.springframework.beans.factory.annotation.Autowired&#125;</span><br><span class="line"> * or &#123;@link javax.inject.Inject&#125;: In that context, it leads to the creation of a</span><br><span class="line"> * lazy-resolution proxy for all affected dependencies, as an alternative to using</span><br><span class="line"> * &#123;@link org.springframework.beans.factory.ObjectFactory&#125; or &#123;@link javax.inject.Provider&#125;.</span><br></pre></td></tr></table></figure>
+
+<p>官方注释写的也挺清楚，简单概括一下：</p>
+<ol>
+<li>写在<code>@Component</code>或者<code>@Bean</code>之前用于声明bean是否延迟初始化</li>
+<li>写在<code>@Configuration</code>之前用于声明这个<code>Configuration</code>内的所有<code>Bean</code>是否延迟初始化</li>
+<li>写在构造注入或者<code>@Autowired</code>之前用于声明是否延迟注入 此时注入的实际是一个<code>lazy-resolution proxy</code></li>
+</ol>
+<h1 id="分别学习-Lazy在这几个场景下如何实现"><a href="#分别学习-Lazy在这几个场景下如何实现" class="headerlink" title="分别学习@Lazy在这几个场景下如何实现"></a>分别学习@Lazy在这几个场景下如何实现</h1><h2 id="声明Bean延迟初始化"><a href="#声明Bean延迟初始化" class="headerlink" title="声明Bean延迟初始化"></a>声明Bean延迟初始化</h2><p>这个场景是比较容易理解，也比较容易想到实现的 </p>
+<p>org.springframework.context.annotation.ClassPathBeanDefinitionScanner#doScan 部分代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">String beanName = <span class="keyword">this</span>.beanNameGenerator.generateBeanName(candidate, <span class="keyword">this</span>.registry);</span><br><span class="line"><span class="keyword">if</span> (candidate <span class="keyword">instanceof</span> AbstractBeanDefinition) &#123;</span><br><span class="line">    postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (candidate <span class="keyword">instanceof</span> AnnotatedBeanDefinition) &#123;</span><br><span class="line">    <span class="comment">// 这里做了注解的识别和处理</span></span><br><span class="line">    AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>org.springframework.context.annotation.AnnotationConfigUtils#processCommonDefinitionAnnotations 部分代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 本质上还是setLazyInit属性</span></span><br><span class="line">AnnotationAttributes lazy = attributesFor(metadata, Lazy.class);</span><br><span class="line"><span class="keyword">if</span> (lazy != <span class="keyword">null</span>) &#123;</span><br><span class="line">    abd.setLazyInit(lazy.getBoolean(<span class="string">&quot;value&quot;</span>));</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (abd.getMetadata() != metadata) &#123;</span><br><span class="line">    lazy = attributesFor(abd.getMetadata(), Lazy.class);</span><br><span class="line">    <span class="keyword">if</span> (lazy != <span class="keyword">null</span>) &#123;</span><br><span class="line">        abd.setLazyInit(lazy.getBoolean(<span class="string">&quot;value&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="申明延迟注入"><a href="#申明延迟注入" class="headerlink" title="申明延迟注入"></a>申明延迟注入</h2><p>demo代码：（这2个类都放在<code>com.example.demo</code>包下 </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestComponent</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Lazy</span></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> AnotherComponent anotherComponent;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(anotherComponent.hello());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        AnnotationConfigApplicationContext ac = <span class="keyword">new</span> AnnotationConfigApplicationContext(<span class="string">&quot;com.example.demo&quot;</span>);</span><br><span class="line">        TestComponent testComponent = (TestComponent) ac.getBean(<span class="string">&quot;testComponent&quot;</span>);</span><br><span class="line">        testComponent.test();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AnotherComponent</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;hi, I am another.&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面也提到了，本质上inject的实际是一个<code>lazy-resolution proxy</code>，并不是原来的bean本身。分2部分看下源码:</p>
+<ul>
+<li>扫描并register<code>testComponent</code>时对lazy @Autowired的处理</li>
+</ul>
+<ol>
+<li>在beanFactory初始化之后会预实例化<br>singleton:org.springframework.context.support.AbstractApplicationContext#finishBeanFactoryInitialization<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Allow for caching all bean definition metadata, not expecting further changes.</span></span><br><span class="line">beanFactory.freezeConfiguration();</span><br><span class="line"></span><br><span class="line"><span class="comment">// Instantiate all remaining (non-lazy-init) singletons.</span></span><br><span class="line">beanFactory.preInstantiateSingletons();</span><br></pre></td></tr></table></figure></li>
+<li>实例化testComponent时 会注入它的依赖<br>org.springframework.beans.factory.support.DefaultListableBeanFactory#resolveDependency<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">descriptor.initParameterNameDiscovery(<span class="keyword">this</span>.getParameterNameDiscoverer());</span><br><span class="line"><span class="keyword">if</span> (Optional.class == descriptor.getDependencyType()) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.createOptionalDependency(descriptor, requestingBeanName);</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (ObjectFactory.class != descriptor.getDependencyType() &amp;&amp; ObjectProvider.class != descriptor.getDependencyType()) &#123;</span><br><span class="line">    <span class="keyword">if</span> (javaxInjectProviderClass == descriptor.getDependencyType()) &#123;</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">new</span> DefaultListableBeanFactory.Jsr330Factory()).createDependencyProvider(descriptor, requestingBeanName);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 这里判断和注入LazyResolutionProxy</span></span><br><span class="line">        Object result = <span class="keyword">this</span>.getAutowireCandidateResolver().getLazyResolutionProxyIfNecessary(descriptor, requestingBeanName);</span><br><span class="line">        <span class="keyword">if</span> (result == <span class="keyword">null</span>) &#123;</span><br><span class="line">            result = <span class="keyword">this</span>.doResolveDependency(descriptor, requestingBeanName, autowiredBeanNames, typeConverter);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> DefaultListableBeanFactory.DependencyObjectProvider(descriptor, requestingBeanName);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>判断和注入LazyResolutionProxy<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 是否是lazy依赖</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">boolean</span> <span class="title">isLazy</span><span class="params">(DependencyDescriptor descriptor)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (Annotation ann : descriptor.getAnnotations()) &#123;</span><br><span class="line">        Lazy lazy = AnnotationUtils.getAnnotation(ann, Lazy.class);</span><br><span class="line">        <span class="keyword">if</span> (lazy != <span class="keyword">null</span> &amp;&amp; lazy.value()) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    MethodParameter methodParam = descriptor.getMethodParameter();</span><br><span class="line">    <span class="keyword">if</span> (methodParam != <span class="keyword">null</span>) &#123;</span><br><span class="line">        Method method = methodParam.getMethod();</span><br><span class="line">        <span class="keyword">if</span> (method == <span class="keyword">null</span> || <span class="keyword">void</span>.class == method.getReturnType()) &#123;</span><br><span class="line">            Lazy lazy = AnnotationUtils.getAnnotation(methodParam.getAnnotatedElement(), Lazy.class);</span><br><span class="line">            <span class="keyword">if</span> (lazy != <span class="keyword">null</span> &amp;&amp; lazy.value()) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建proxy</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> Object <span class="title">buildLazyResolutionProxy</span><span class="params">(<span class="keyword">final</span> DependencyDescriptor descriptor, <span class="keyword">final</span> <span class="meta">@Nullable</span> String beanName)</span> </span>&#123;</span><br><span class="line">    Assert.state(getBeanFactory() <span class="keyword">instanceof</span> DefaultListableBeanFactory,</span><br><span class="line">            <span class="string">&quot;BeanFactory needs to be a DefaultListableBeanFactory&quot;</span>);</span><br><span class="line">    <span class="keyword">final</span> DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) getBeanFactory();</span><br><span class="line">    <span class="comment">// TargetSource是一个接口 用于提供实际要代理的target </span></span><br><span class="line">    <span class="comment">// 这里给到的实现是从beanFactory取得target</span></span><br><span class="line">    TargetSource ts = <span class="keyword">new</span> TargetSource() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> Class&lt;?&gt; getTargetClass() &#123;</span><br><span class="line">            <span class="keyword">return</span> descriptor.getDependencyType();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isStatic</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Object <span class="title">getTarget</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="comment">// 这里从beanFactory中获取真正的bean</span></span><br><span class="line">            Object target = beanFactory.doResolveDependency(descriptor, beanName, <span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line">            <span class="keyword">if</span> (target == <span class="keyword">null</span>) &#123;</span><br><span class="line">                Class&lt;?&gt; type = getTargetClass();</span><br><span class="line">                <span class="keyword">if</span> (Map.class == type) &#123;</span><br><span class="line">                    <span class="keyword">return</span> Collections.emptyMap();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (List.class == type) &#123;</span><br><span class="line">                    <span class="keyword">return</span> Collections.emptyList();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (Set.class == type || Collection.class == type) &#123;</span><br><span class="line">                    <span class="keyword">return</span> Collections.emptySet();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> NoSuchBeanDefinitionException(descriptor.getResolvableType(),</span><br><span class="line">                        <span class="string">&quot;Optional dependency not present for lazy injection point&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> target;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">releaseTarget</span><span class="params">(Object target)</span> </span>&#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    ProxyFactory pf = <span class="keyword">new</span> ProxyFactory();</span><br><span class="line">    pf.setTargetSource(ts);</span><br><span class="line">    Class&lt;?&gt; dependencyType = descriptor.getDependencyType();</span><br><span class="line">    <span class="keyword">if</span> (dependencyType.isInterface()) &#123;</span><br><span class="line">        pf.addInterface(dependencyType);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 这里生成proxy</span></span><br><span class="line">    <span class="keyword">return</span> pf.getProxy(beanFactory.getBeanClassLoader());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>生成proxy 分为jdk(JdkDynamicAopProxy)和cglib(CglibAopProxy)<br>org.springframework.aop.framework.DefaultAopProxyFactory#createAopProxy<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!config.isOptimize() &amp;&amp; !config.isProxyTargetClass() &amp;&amp; !<span class="keyword">this</span>.hasNoUserSuppliedProxyInterfaces(config)) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> JdkDynamicAopProxy(config);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    Class&lt;?&gt; targetClass = config.getTargetClass();</span><br><span class="line">    <span class="keyword">if</span> (targetClass == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> AopConfigException(<span class="string">&quot;TargetSource cannot determine target class: Either an interface or a target is required for proxy creation.&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (AopProxy)(!targetClass.isInterface() &amp;&amp; !Proxy.isProxyClass(targetClass) ? <span class="keyword">new</span> ObjenesisCglibAopProxy(config) : <span class="keyword">new</span> JdkDynamicAopProxy(config));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>复习下：spring的动态代理在没给具体类或者面向接口时使用jdk(本质是Proxy实现了代理接口 反射调用方法)，其他使用cglib(本质是生成被代理类的子类 FastClass机制直接调用原方法) </p>
+</blockquote>
+</li>
+<li>proxy中对方法的拦截 这里jdk和cglib行为相似<br>关键在于这里调用了<code>targetSource.getTarget()</code>来从beanFactory获取bean从而触发了init 核心代码:</li>
+</ol>
+<p>org.springframework.aop.framework.JdkDynamicAopProxy#invoke</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">target = targetSource.getTarget();</span><br><span class="line">Class&lt;?&gt; targetClass = target != <span class="keyword">null</span> ? target.getClass() : <span class="keyword">null</span>;</span><br><span class="line">List&lt;Object&gt; chain = <span class="keyword">this</span>.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);</span><br><span class="line"><span class="keyword">if</span> (chain.isEmpty()) &#123;</span><br><span class="line">    Object[] argsToUse = AopProxyUtils.adaptArgumentsIfNecessary(method, args);</span><br><span class="line">    retVal = AopUtils.invokeJoinpointUsingReflection(target, method, argsToUse);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    MethodInvocation invocation = <span class="keyword">new</span> ReflectiveMethodInvocation(proxy, target, method, args, targetClass, chain);</span><br><span class="line">    retVal = invocation.proceed();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>org.springframework.aop.framework.CglibAopProxy.DynamicAdvisedInterceptor#intercept</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">target = targetSource.getTarget();</span><br><span class="line">Class&lt;?&gt; targetClass = target != <span class="keyword">null</span> ? target.getClass() : <span class="keyword">null</span>;</span><br><span class="line">List&lt;Object&gt; chain = <span class="keyword">this</span>.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);</span><br><span class="line">Object retVal;</span><br><span class="line"><span class="keyword">if</span> (chain.isEmpty() &amp;&amp; Modifier.isPublic(method.getModifiers())) &#123;</span><br><span class="line">    Object[] argsToUse = AopProxyUtils.adaptArgumentsIfNecessary(method, args);</span><br><span class="line">    retVal = methodProxy.invoke(target, argsToUse);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    retVal = (<span class="keyword">new</span> CglibAopProxy.CglibMethodInvocation(proxy, target, method, args, targetClass, chain, methodProxy)).proceed();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>@Lazy可用于bean的延迟初始化(asm获取类注解)和bean依赖的延迟注入(动态代理)</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/Spring/" rel="tag"># Spring</a>
+              <a href="/blog/tags/%E6%BA%90%E7%A0%81/" rel="tag"># 源码</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/2019/12/22/Java-CodeBook/" rel="prev" title="Java CodeBook">
+                  <i class="fa fa-chevron-left"></i> Java CodeBook
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/2019/12/22/%E5%9F%BA%E4%BA%8EGroovy%E7%9A%84%E8%A7%84%E5%88%99%E5%BC%95%E6%93%8E%E5%AE%9E%E7%8E%B0/" rel="next" title="基于Groovy的规则引擎实现">
+                  基于Groovy的规则引擎实现 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jimu Yang</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

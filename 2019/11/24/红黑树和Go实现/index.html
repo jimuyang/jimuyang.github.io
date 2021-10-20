@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"jimuyang.github.io","root":"/blog/","images":"/blog/images","scheme":"Pisces","darkmode":false,"version":"8.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/blog/js/config.js"></script>
+<meta name="description" content="为什么需要红黑树红黑树是一种特殊的二叉搜索树。因为它的时间复杂度也是 O(h)，h是树的高度。而红黑树是一种较矮的二叉搜索树，它的定义确保了从根到叶子的任何一条路径会比其他路径长出2倍，因而是近似于平衡的。本文使用golang实现红黑树的基本方法，全部代码加注释不到400行，主要的思路来自《算法导论》第13章红黑树。 红黑树的定义 红黑原则: 每个节点是红色或者黑色 黑根原则: 根节点(root)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="红黑树和Go实现">
+<meta property="og:url" content="https://jimuyang.github.io/blog/2019/11/24/%E7%BA%A2%E9%BB%91%E6%A0%91%E5%92%8CGo%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="积木杨">
+<meta property="og:description" content="为什么需要红黑树红黑树是一种特殊的二叉搜索树。因为它的时间复杂度也是 O(h)，h是树的高度。而红黑树是一种较矮的二叉搜索树，它的定义确保了从根到叶子的任何一条路径会比其他路径长出2倍，因而是近似于平衡的。本文使用golang实现红黑树的基本方法，全部代码加注释不到400行，主要的思路来自《算法导论》第13章红黑树。 红黑树的定义 红黑原则: 每个节点是红色或者黑色 黑根原则: 根节点(root)">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://jimuyang.github.io/images/rbtree/1.jpg">
+<meta property="og:image" content="https://jimuyang.github.io/images/rbtree/2.jpg">
+<meta property="og:image" content="https://jimuyang.github.io/images/rbtree/3.jpg">
+<meta property="og:image" content="https://jimuyang.github.io/images/rbtree/4.jpg">
+<meta property="og:image" content="https://jimuyang.github.io/images/rbtree/5.jpg">
+<meta property="og:image" content="https://jimuyang.github.io/images/rbtree/6.jpg">
+<meta property="og:image" content="https://jimuyang.github.io/images/rbtree/7.jpg">
+<meta property="article:published_time" content="2019-11-24T05:57:45.000Z">
+<meta property="article:modified_time" content="2021-10-20T17:26:23.318Z">
+<meta property="article:author" content="Jimu Yang">
+<meta property="article:tag" content="算法">
+<meta property="article:tag" content="Golang">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://jimuyang.github.io/images/rbtree/1.jpg">
+
+
+<link rel="canonical" href="https://jimuyang.github.io/blog/2019/11/24/%E7%BA%A2%E9%BB%91%E6%A0%91%E5%92%8CGo%E5%AE%9E%E7%8E%B0/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://jimuyang.github.io/blog/2019/11/24/%E7%BA%A2%E9%BB%91%E6%A0%91%E5%92%8CGo%E5%AE%9E%E7%8E%B0/","path":"2019/11/24/红黑树和Go实现/","title":"红黑树和Go实现"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>红黑树和Go实现 | 积木杨</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/blog/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/blog/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">积木杨</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/blog/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/blog/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/blog/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-archives"><a href="/blog/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-schedule"><a href="/blog/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E7%BA%A2%E9%BB%91%E6%A0%91"><span class="nav-number">1.</span> <span class="nav-text">为什么需要红黑树</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%A2%E9%BB%91%E6%A0%91%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-number">2.</span> <span class="nav-text">红黑树的定义</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E4%BA%9B%E8%A7%A3%E8%AF%BB%EF%BC%9A"><span class="nav-number">2.1.</span> <span class="nav-text">一些解读：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BF%AB%E9%80%9F%E7%94%A8Golang%E5%AE%9E%E7%8E%B0%E5%90%A7"><span class="nav-number">3.</span> <span class="nav-text">快速用Golang实现吧</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89%E7%BA%A2%E9%BB%91%E6%A0%91%E7%9A%84%E8%8A%82%E7%82%B9"><span class="nav-number">3.1.</span> <span class="nav-text">定义红黑树的节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89%E7%BA%A2%E9%BB%91%E6%A0%91"><span class="nav-number">3.2.</span> <span class="nav-text">定义红黑树</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%A2%E9%BB%91%E6%A0%91%E7%9A%84%E6%9F%A5%E8%AF%A2%E3%80%81%E6%9C%80%E5%A4%A7%E5%80%BC%E3%80%81%E6%9C%80%E5%B0%8F%E5%80%BC"><span class="nav-number">3.3.</span> <span class="nav-text">红黑树的查询、最大值、最小值</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Find"><span class="nav-number">3.3.1.</span> <span class="nav-text">Find</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Min"><span class="nav-number">3.3.2.</span> <span class="nav-text">Min</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#minNode"><span class="nav-number">3.3.3.</span> <span class="nav-text">minNode</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%A2%E9%BB%91%E6%A0%91%E7%9A%84%E6%B5%8B%E8%AF%95"><span class="nav-number">3.4.</span> <span class="nav-text">红黑树的测试</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Check"><span class="nav-number">3.4.1.</span> <span class="nav-text">Check</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%A2%E9%BB%91%E6%A0%91%E7%9A%84%E6%97%8B%E8%BD%AC"><span class="nav-number">3.5.</span> <span class="nav-text">红黑树的旋转</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#leftRotate"><span class="nav-number">3.5.1.</span> <span class="nav-text">leftRotate</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%A2%E9%BB%91%E6%A0%91%E7%9A%84%E6%8F%92%E5%85%A5"><span class="nav-number">3.6.</span> <span class="nav-text">红黑树的插入</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Insert"><span class="nav-number">3.6.1.</span> <span class="nav-text">Insert</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#insertFixup"><span class="nav-number">3.6.2.</span> <span class="nav-text">insertFixup</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%A2%E9%BB%91%E6%A0%91%E7%9A%84%E5%88%A0%E9%99%A4"><span class="nav-number">3.7.</span> <span class="nav-text">红黑树的删除</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#transplant"><span class="nav-number">3.7.1.</span> <span class="nav-text">transplant</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Delete"><span class="nav-number">3.7.2.</span> <span class="nav-text">Delete</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#deleteFixup"><span class="nav-number">3.7.3.</span> <span class="nav-text">deleteFixup</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E6%B5%8B%E8%AF%95"><span class="nav-number">4.</span> <span class="nav-text">实现测试</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jimu Yang</p>
+  <div class="site-description" itemprop="description">积木杨的博客</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/blog/archives/">
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/blog/tags/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://jimuyang.github.io/blog/2019/11/24/%E7%BA%A2%E9%BB%91%E6%A0%91%E5%92%8CGo%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="name" content="Jimu Yang">
+      <meta itemprop="description" content="积木杨的博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="积木杨">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          红黑树和Go实现
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-11-24 13:57:45" itemprop="dateCreated datePublished" datetime="2019-11-24T13:57:45+08:00">2019-11-24</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-10-21 01:26:23" itemprop="dateModified" datetime="2021-10-21T01:26:23+08:00">2021-10-21</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="为什么需要红黑树"><a href="#为什么需要红黑树" class="headerlink" title="为什么需要红黑树"></a>为什么需要红黑树</h2><p>红黑树是一种特殊的二叉搜索树。因为它的时间复杂度也是 O(h)，h是树的高度。而红黑树是一种较矮的二叉搜索树，它的定义确保了从根到叶子的任何一条路径会比其他路径长出2倍，因而是近似于平衡的。<br>本文使用golang实现红黑树的基本方法，全部代码加注释不到400行，主要的思路来自《算法导论》第13章红黑树。</p>
+<h2 id="红黑树的定义"><a href="#红黑树的定义" class="headerlink" title="红黑树的定义"></a>红黑树的定义</h2><ol>
+<li>红黑原则: 每个节点是红色或者黑色</li>
+<li>黑根原则: 根节点(root)和叶子节点(LEAF)为黑色</li>
+<li>连红原则: 如果一个节点是红色，则它的子节点都是黑色</li>
+<li>黑高原则: 对每个节点，从该节点到其所有后代叶节点的简单路径上，包含相同数目的黑色节点</li>
+</ol>
+<h3 id="一些解读："><a href="#一些解读：" class="headerlink" title="一些解读："></a>一些解读：</h3><ul>
+<li>红黑树的以黑色节点为根的子树也是红黑树</li>
+<li>连红原则 =&gt; 不能连续出现红色节点，结合黑高原则可知在极端场景下，一条路径A上红黑节点间隔出现，它的长度是另一条路径B（只有黑节点）的2倍</li>
+</ul>
+<h2 id="快速用Golang实现吧"><a href="#快速用Golang实现吧" class="headerlink" title="快速用Golang实现吧"></a>快速用Golang实现吧</h2><h3 id="定义红黑树的节点"><a href="#定义红黑树的节点" class="headerlink" title="定义红黑树的节点"></a>定义红黑树的节点</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> RBNode <span class="keyword">struct</span> &#123;</span><br><span class="line">	value               <span class="keyword">int64</span></span><br><span class="line">	color               <span class="keyword">bool</span></span><br><span class="line">	left, right, parent *RBNode</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>和普通的二叉搜索树只是多了一个color字段，值为常量 如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> (</span><br><span class="line">	<span class="comment">// RED 红色</span></span><br><span class="line">	RED <span class="keyword">bool</span> = <span class="literal">true</span></span><br><span class="line">	<span class="comment">// BLACK 黑色</span></span><br><span class="line">	BLACK <span class="keyword">bool</span> = <span class="literal">false</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>定义几个概念：注意下面的方法都没有做判空，由使用者来保证</p>
+<ul>
+<li>爷节点 - 父节点的父节点  <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(node *RBNode)</span> <span class="title">getGrandPa</span><span class="params">()</span> *<span class="title">RBNode</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> node.parent.parent</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>兄弟节点 - 顾名思义   <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(node *RBNode)</span> <span class="title">getBrother</span><span class="params">()</span> *<span class="title">RBNode</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> node == node.parent.left &#123;</span><br><span class="line">		<span class="keyword">return</span> node.parent.right</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> node.parent.left</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>叔节点 - 父节点的兄弟节点  <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(node *RBNode)</span> <span class="title">getUncle</span><span class="params">()</span> *<span class="title">RBNode</span></span> &#123;</span><br><span class="line">	grandPa := node.getGrandPa()</span><br><span class="line">	<span class="keyword">if</span> grandPa.left == node.parent &#123;</span><br><span class="line">		<span class="keyword">return</span> grandPa.right</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> grandPa.left</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="定义红黑树"><a href="#定义红黑树" class="headerlink" title="定义红黑树"></a>定义红黑树</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> RBTree <span class="keyword">struct</span> &#123;</span><br><span class="line">	root *RBNode</span><br><span class="line">	LEAF *RBNode</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Init 初始化一颗红黑树</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tree *RBTree)</span> <span class="title">Init</span><span class="params">()</span> *<span class="title">RBTree</span></span> &#123;</span><br><span class="line">	tree.LEAF = &amp;RBNode&#123;<span class="number">0</span>, BLACK, <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="literal">nil</span>&#125;</span><br><span class="line">	tree.root = tree.LEAF</span><br><span class="line">	<span class="keyword">return</span> tree</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>关于LEAF节点（叶节点）的说明：它是<strong>唯一</strong>的叶节点，它的颜色为黑色<br>看2个使用场景:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> node != tree.LEAF &#123;</span><br><span class="line">    <span class="comment">// node不是叶节点</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 向树中插入新节点时的构建 左右子节点都是LEAF</span></span><br><span class="line">newNode := &amp;RBNode&#123;value, RED, tree.LEAF, tree.LEAF, parent&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>一个小疑问：为什么不使用nil作为叶节点？此时只要认为nil也是黑色不就可以达到相同的目的么<br>我一开始就是这么做的并且没觉得有啥问题，直到在实现红黑树的删除时…，在后续逻辑中有体现   </p>
+</blockquote>
+<h3 id="红黑树的查询、最大值、最小值"><a href="#红黑树的查询、最大值、最小值" class="headerlink" title="红黑树的查询、最大值、最小值"></a>红黑树的查询、最大值、最小值</h3><p>和普通二叉树的查询没有任何区别</p>
+<h4 id="Find"><a href="#Find" class="headerlink" title="Find"></a>Find</h4><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Find 红黑树中找到一个值 </span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tree *RBTree)</span> <span class="title">Find</span><span class="params">(value <span class="keyword">int64</span>)</span> *<span class="title">RBNode</span></span> &#123;</span><br><span class="line">	node := tree.root</span><br><span class="line">	<span class="keyword">for</span> node != tree.LEAF &amp;&amp; node.value != value &#123;</span><br><span class="line">		<span class="keyword">if</span> value &lt; node.value &#123;</span><br><span class="line">			node = node.left</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			node = node.right</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> node</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Min"><a href="#Min" class="headerlink" title="Min"></a>Min</h4><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Min 红黑树的最小值</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tree *RBTree)</span> <span class="title">Min</span><span class="params">()</span> <span class="params">(<span class="keyword">int64</span>, error)</span></span> &#123;</span><br><span class="line">	minNode := tree.minNode(tree.root)</span><br><span class="line">	<span class="keyword">if</span> minNode == tree.LEAF &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>, fmt.Errorf(<span class="string">&quot;空树&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> minNode.value, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="minNode"><a href="#minNode" class="headerlink" title="minNode"></a>minNode</h4><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在以start为根的子树中寻找最小值</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tree *RBTree)</span> <span class="title">minNode</span><span class="params">(start *RBNode)</span> *<span class="title">RBNode</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> start == tree.LEAF &#123;</span><br><span class="line">		<span class="keyword">return</span> tree.LEAF</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> start.left != tree.LEAF &#123;</span><br><span class="line">		start = start.left</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> start</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Max 和Min没啥区别，篇幅原因忽略</span></span><br></pre></td></tr></table></figure>
+<h3 id="红黑树的测试"><a href="#红黑树的测试" class="headerlink" title="红黑树的测试"></a>红黑树的测试</h3><p>测试我们实现的红黑树是否违反了几大原则 这里给出一个递归版本的简单测试</p>
+<h4 id="Check"><a href="#Check" class="headerlink" title="Check"></a>Check</h4><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Check 检查红黑树是否违反原则</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tree *RBTree)</span> <span class="title">Check</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> tree.root.color == RED &#123;</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">&quot;违反黑根原则&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	_, err := tree.check(tree.root)</span><br><span class="line">	<span class="keyword">return</span> err</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 返回以node为根的子树的黑高</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tree *RBTree)</span> <span class="title">check</span><span class="params">(node *RBNode)</span> <span class="params">(<span class="keyword">int</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> node == tree.LEAF &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">1</span>, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> node.color == RED &#123;</span><br><span class="line">		<span class="keyword">if</span> node.left.color == RED || node.right.color == RED &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="number">0</span>, fmt.Errorf(<span class="string">&quot;违反连红原则&quot;</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 左右子树的黑高</span></span><br><span class="line">	lc, err := tree.check(node.left)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	rc, err := tree.check(node.right)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> lc != rc &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>, fmt.Errorf(<span class="string">&quot;违反黑高原则&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 自己的黑高</span></span><br><span class="line">	bh := lc</span><br><span class="line">	<span class="keyword">if</span> node.color == BLACK &#123;</span><br><span class="line">		bh++</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> bh, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="红黑树的旋转"><a href="#红黑树的旋转" class="headerlink" title="红黑树的旋转"></a>红黑树的旋转</h3><p>在实现红黑树的插入和删除之前，先实现红黑树的旋转吧，和普通二叉树的实现没有区别。<br>在旋转的实现中，只有指针的修改。需要注意的点只有：</p>
+<ol>
+<li>如果原来是root节点，需要修改root的指向</li>
+<li>这里不要随便改变LEAF的parent指向</li>
+</ol>
+<h4 id="leftRotate"><a href="#leftRotate" class="headerlink" title="leftRotate"></a>leftRotate</h4><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 左旋 将node的右孩子旋转到自己的位置</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tree *RBTree)</span> <span class="title">leftRotate</span><span class="params">(node *RBNode)</span> <span class="params">(*RBNode, error)</span></span> &#123;</span><br><span class="line">	rc := node.right</span><br><span class="line">	<span class="keyword">if</span> rc == tree.LEAF &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">&quot;右孩子不存在, 无法左旋&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 右孩子的左孩子“过继”给自己当右孩子</span></span><br><span class="line">	node.right = rc.left</span><br><span class="line">	<span class="comment">// 这里不希望随便改变LEAF的parent</span></span><br><span class="line">	<span class="keyword">if</span> rc.left != tree.LEAF &#123;</span><br><span class="line">		rc.left.parent = node</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 右孩子上位</span></span><br><span class="line">	rc.parent = node.parent</span><br><span class="line">	<span class="keyword">if</span> node.parent == tree.LEAF &#123;</span><br><span class="line">		<span class="comment">// 本来是根节点</span></span><br><span class="line">		tree.root = rc</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> node.parent.left == node &#123;</span><br><span class="line">		node.parent.left = rc</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		node.parent.right = rc</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 自己成为左孩子</span></span><br><span class="line">	rc.left = node</span><br><span class="line">	node.parent = rc</span><br><span class="line">	<span class="keyword">return</span> rc, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 右旋 将node的左孩子旋转到自己的位置</span></span><br><span class="line"><span class="comment">// 和左旋只是方向不同 这里不再给到...</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="红黑树的插入"><a href="#红黑树的插入" class="headerlink" title="红黑树的插入"></a>红黑树的插入</h3><p>红黑树的插入和普通二叉树的插入没有大的区别，关键点是：</p>
+<ol>
+<li>新增的是红色节点 =&gt; 此时可能违反的是黑根原则和连红原则</li>
+<li>在保证黑高原则永远不被违反的前提下，将树变色和旋转来处理连红的情况</li>
+</ol>
+<h4 id="Insert"><a href="#Insert" class="headerlink" title="Insert"></a>Insert</h4><p>没啥好说的 只是在合适的位置插入了一个红色的新节点</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Insert 红黑树中插入一个新值</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tree *RBTree)</span> <span class="title">Insert</span><span class="params">(value <span class="keyword">int64</span>)</span></span> &#123;</span><br><span class="line">	node := tree.root</span><br><span class="line">	<span class="keyword">var</span> parent *RBNode = tree.LEAF</span><br><span class="line">	<span class="comment">// 找到合适的插入位置</span></span><br><span class="line">	<span class="keyword">for</span> node != tree.LEAF &#123;</span><br><span class="line">		parent = node</span><br><span class="line">		<span class="keyword">if</span> value &lt; node.value &#123;</span><br><span class="line">			node = node.left</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			node = node.right</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 放入一个红色节点</span></span><br><span class="line">	newNode := &amp;RBNode&#123;value, RED, tree.LEAF, tree.LEAF, parent&#125;</span><br><span class="line">	<span class="keyword">if</span> parent == tree.LEAF &#123;</span><br><span class="line">		<span class="comment">// 空树</span></span><br><span class="line">		tree.root = newNode</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> value &lt; parent.value &#123;</span><br><span class="line">		parent.left = newNode</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		parent.right = newNode</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 调整红黑树 使之依然保持红黑</span></span><br><span class="line">	tree.insertFixup(newNode)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="insertFixup"><a href="#insertFixup" class="headerlink" title="insertFixup"></a>insertFixup</h4><p>旋转和变色 使之保持红黑。其中的关键是一直保持黑高原则不被打破<br>被打破的只有：</p>
+<ol>
+<li>黑根原则 =&gt; 根节点变色即可</li>
+<li>连红原则 此时分情况提供解决方案：</li>
+</ol>
+<ul>
+<li>如果父节点和叔节点都是红色 =&gt; 双变色：父节点和叔节点都变黑 爷节点变红<br><img src="/images/rbtree/1.jpg"></li>
+<li>如果父节点红、叔节点黑    =&gt; 统一战线干掉爷节点：保证我、父、爷成一条直线，然后旋转挤下爷节点<br><img src="/images/rbtree/2.jpg"><br>从图上可以看出在不看红节点的视角下，所有子树都接在一个黑节点上，旋转过后依然如此，因此黑高原则没有被打破<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tree *RBTree)</span> <span class="title">insertFixup</span><span class="params">(newNode *RBNode)</span></span> &#123;</span><br><span class="line">	redNode := newNode</span><br><span class="line">	<span class="keyword">for</span> redNode.parent.color == RED &#123;</span><br><span class="line">		parent := redNode.parent</span><br><span class="line">		uncle, grandPa := redNode.getUncle(), redNode.getGrandPa()</span><br><span class="line">		<span class="keyword">if</span> uncle.color == RED &#123;</span><br><span class="line">			<span class="comment">// 如果叔节点是红色 =&gt; 双变色</span></span><br><span class="line">			parent.color = BLACK</span><br><span class="line">			uncle.color = BLACK</span><br><span class="line">			grandPa.color = RED</span><br><span class="line">			redNode = grandPa</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="comment">// 如果叔节点是黑色 =&gt; 统一战线干掉爷节点</span></span><br><span class="line">			<span class="keyword">if</span> redNode == parent.left &amp;&amp; parent == grandPa.right &#123;</span><br><span class="line">				parent, _ = tree.rightRotate(parent)</span><br><span class="line">			&#125; <span class="keyword">else</span> <span class="keyword">if</span> redNode == parent.right &amp;&amp; parent == grandPa.left &#123;</span><br><span class="line">				parent, _ = tree.leftRotate(parent)</span><br><span class="line">			&#125;</span><br><span class="line">			parent.color = BLACK</span><br><span class="line">			grandPa.color = RED</span><br><span class="line">			<span class="keyword">if</span> parent == grandPa.left &#123;</span><br><span class="line">				tree.rightRotate(grandPa)</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				tree.leftRotate(grandPa)</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	tree.root.color = BLACK</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="红黑树的删除"><a href="#红黑树的删除" class="headerlink" title="红黑树的删除"></a>红黑树的删除</h3>在实现删除之前，先实现一个子过程transplant，这个方法通过子节点上移的方式来删除父节点<h4 id="transplant"><a href="#transplant" class="headerlink" title="transplant"></a>transplant</h4>这里有一个关键点：子节点可能是LEAF，此时也需要赋值parent来记录自己的位置；这里也是叶节点不用nil来实现的理由<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 移植 子节点move上移替代原来的节点 只有指针的赋值</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tree *RBTree)</span> <span class="title">transplant</span><span class="params">(deleted *RBNode, move *RBNode)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> deleted.parent == tree.LEAF &#123;</span><br><span class="line">		tree.root = move</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> deleted == deleted.parent.left &#123;</span><br><span class="line">		deleted.parent.left = move</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		deleted.parent.right = move</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 这里move可能是LEAF 也需要修改parent来记录自己的位置</span></span><br><span class="line">	move.parent = deleted.parent</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Delete"><a href="#Delete" class="headerlink" title="Delete"></a>Delete</h4>从红黑树中删除一个值需要2步：1. 找到这个值 2.删掉它<br>其中的关键点是：从树中删除一个节点，往往实际删除的是它的后继节点<br><img src="/images/rbtree/3.jpg"><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Delete 从红黑树中删除一个值</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tree *RBTree)</span> <span class="title">Delete</span><span class="params">(value <span class="keyword">int64</span>)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	node := tree.Find(value)</span><br><span class="line">	<span class="keyword">if</span> node == tree.LEAF &#123;</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">&quot;树中没有该值 无法删除&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> tree.deleteNode(node)</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 从红黑树中删除一个节点</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tree *RBTree)</span> <span class="title">deleteNode</span><span class="params">(node *RBNode)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="comment">// 实际上移的节点</span></span><br><span class="line">	<span class="keyword">var</span> move *RBNode</span><br><span class="line">	<span class="comment">// 实际少了的颜色</span></span><br><span class="line">	color := node.color</span><br><span class="line">	<span class="keyword">if</span> node.left == tree.LEAF &#123;</span><br><span class="line">		<span class="comment">// 右子树上移</span></span><br><span class="line">		move = node.right</span><br><span class="line">		tree.transplant(node, move)</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> node.right == tree.LEAF &#123;</span><br><span class="line">		<span class="comment">// 左子树上移</span></span><br><span class="line">		move = node.left</span><br><span class="line">		tree.transplant(node, move)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="comment">// 目标节点有2个子节点，此时找到目标节点右子树的最小值（即后继节点）</span></span><br><span class="line">		<span class="comment">// 将后继节点赋值给目标节点后，此时实际要删除的是后继节点</span></span><br><span class="line">		<span class="comment">// 后继节点的左子树一定为LEAF 将后继节点的右子树上移</span></span><br><span class="line">		successor := tree.minNode(node)</span><br><span class="line">		node.value = successor.value</span><br><span class="line">		color = successor.color</span><br><span class="line">		move = successor.right</span><br><span class="line">		tree.transplant(successor, move)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> color == BLACK &#123;</span><br><span class="line">		<span class="comment">// 树里少了一个黑色 此时需要fixup</span></span><br><span class="line">		<span class="comment">// 黑高原则还是不容打破 此时我们认为上移的节点move拥有额外的一个黑色</span></span><br><span class="line">		<span class="comment">// 此时move的颜色为红黑(RED)或黑黑(BLACK) 此时违反了 红黑原则</span></span><br><span class="line">		<span class="comment">// move此时可能为LEAF 但在transplant中也赋值了parent</span></span><br><span class="line">		tree.deleteFixup(move)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="deleteFixup"><a href="#deleteFixup" class="headerlink" title="deleteFixup"></a>deleteFixup</h4><p>这个方法的核心思路是被删除节点后，认为实际上移的节点move拥有额外的一个黑色。此时一切都好，只是红黑原则被打破了。<br>deleteFixup方法就是要处理这额外的黑色，手段是将这个黑色上移，直到：</p>
+<ul>
+<li>node为一个红黑节点 =&gt; 直接染成黑色即可</li>
+<li>node指向了根节点 =&gt; 将额外的黑色移除</li>
+<li>适当的旋转和着色从而退出循环</li>
+</ul>
+<p>主要讨论node是黑黑节点且不是根节点的情况，下面分析基于一个假设：node是左孩子、兄弟是右孩子的情况，因为node是右孩子是完全对称的情形</p>
+<ol>
+<li>如果兄弟节点是红色的 左旋让兄弟变成黑的<br><img src="/images/rbtree/4.jpg"></li>
+<li>如果兄弟节点是黑色</li>
+</ol>
+<ul>
+<li>2.1 兄弟的子女都是黑的 就可以和兄弟一起脱黑 额外的黑转移给父节点<br><img src="/images/rbtree/5.jpg"></li>
+<li>2.2 兄弟的右孩子是红的 左旋即可 （拉父节点下水 让父节点承担额外的黑 解决问题<br><img src="/images/rbtree/6.jpg"></li>
+<li>2.3 兄弟的左孩子是红的 兄弟右旋让右孩子变红 回到2.2<br><img src="/images/rbtree/7.jpg"></li>
+</ul>
+<p>代码实现</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(tree *RBTree)</span> <span class="title">deleteFixup</span><span class="params">(moveNode *RBNode)</span></span> &#123;</span><br><span class="line">	<span class="comment">// node节点自带一层黑色 这里的node可能为LEAF 但带了parent</span></span><br><span class="line">	node := moveNode</span><br><span class="line">	<span class="comment">// 是黑黑节点且不是根节点 此时需要处理额外的黑色 此时兄弟节点一定不为LEAF</span></span><br><span class="line">	<span class="keyword">for</span> node.color == BLACK &amp;&amp; node != tree.root &#123;</span><br><span class="line">		<span class="comment">// 分类讨论: 下面只看我是左孩子 兄弟是右孩子的情况</span></span><br><span class="line">		<span class="comment">// 1. 如果兄弟节点是红色的 左旋让兄弟变成黑的</span></span><br><span class="line">		<span class="comment">// 2. 如果兄弟节点是黑的</span></span><br><span class="line">		<span class="comment">//    2.1 兄弟的子女都是黑的 就可以和兄弟一起脱黑 额外的黑转移给父节点</span></span><br><span class="line">		<span class="comment">//    2.2 兄弟的右孩子是红的 左旋即可 （拉父节点下水 让父节点承担额外的黑 解决问题</span></span><br><span class="line">		<span class="comment">//    2.3 兄弟的左孩子是红的 兄弟右旋让右孩子变红 回到2.2</span></span><br><span class="line">		brother := node.getBrother()</span><br><span class="line">		amLeft := node == node.parent.left</span><br><span class="line">		<span class="keyword">if</span> brother.color == RED &#123;</span><br><span class="line">			<span class="comment">// 此时parent是黑的 brother的2个子节点都不为LEAF且都是黑的</span></span><br><span class="line">			node.parent.color = RED</span><br><span class="line">			brother.color = BLACK</span><br><span class="line">			tree.rotate(node.parent, amLeft)</span><br><span class="line">			<span class="comment">// 此时兄弟已经换了 新兄弟一定不为LEAF 且一定是黑色（看图参考黑高原则）</span></span><br><span class="line">			brother = node.getBrother()</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="comment">// 此时兄弟是黑的</span></span><br><span class="line">		<span class="keyword">if</span> brother.left.color == BLACK &amp;&amp; brother.right.color == BLACK &#123;</span><br><span class="line">			<span class="comment">// 可以和兄弟一起脱黑</span></span><br><span class="line">			brother.color = RED</span><br><span class="line">			<span class="comment">// 额外的黑色转移到父节点</span></span><br><span class="line">			node = node.parent</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="comment">// 不能一起脱黑 那就旋转变色 解决问题</span></span><br><span class="line">			<span class="keyword">if</span> amLeft &#123;</span><br><span class="line">				<span class="keyword">if</span> brother.left.color == RED &#123;</span><br><span class="line">					brother.left.color = BLACK</span><br><span class="line">					brother.color = RED</span><br><span class="line">					tree.rightRotate(brother)</span><br><span class="line">				&#125;</span><br><span class="line">				brother = node.parent.right</span><br><span class="line">				<span class="comment">// 此时brother的右孩子一定是红色 整体左旋</span></span><br><span class="line">				brother.color = node.parent.color</span><br><span class="line">				node.parent.color = BLACK <span class="comment">// 背额外的黑</span></span><br><span class="line">				brother.right.color = BLACK</span><br><span class="line">				tree.leftRotate(node.parent)</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				<span class="keyword">if</span> brother.right.color == RED &#123;</span><br><span class="line">					brother.right.color = BLACK</span><br><span class="line">					brother.color = RED</span><br><span class="line">					tree.leftRotate(brother)</span><br><span class="line">				&#125;</span><br><span class="line">				brother = node.parent.left</span><br><span class="line">				<span class="comment">// 此时brother的左孩子一定是红色 整体右旋</span></span><br><span class="line">				brother.color = node.parent.color</span><br><span class="line">				node.parent.color = BLACK <span class="comment">// 背额外的黑</span></span><br><span class="line">				brother.left.color = BLACK</span><br><span class="line">				tree.rightRotate(node.parent)</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 是红黑节点或者是根节点 简单的染成黑色即可</span></span><br><span class="line">	node.color = BLACK</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="实现测试"><a href="#实现测试" class="headerlink" title="实现测试"></a>实现测试</h2><p>这里给出一个简单的测试</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	tree := <span class="built_in">new</span>(RBTree).Init()</span><br><span class="line">	arr := <span class="built_in">make</span>([]<span class="keyword">int</span>, <span class="number">100</span>)</span><br><span class="line">	rand.Seed(time.Now().Unix())</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">100</span>; i++ &#123;</span><br><span class="line">		arr[i] = rand.Intn(<span class="number">1000</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, e := <span class="keyword">range</span> arr &#123;</span><br><span class="line">		fmt.Printf(<span class="string">&quot;insert: %d \n&quot;</span>, e)</span><br><span class="line">		tree.Insert(<span class="keyword">int64</span>(e))</span><br><span class="line">		err := tree.Check()</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			fmt.Println(err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, e := <span class="keyword">range</span> arr[<span class="number">40</span>:<span class="number">80</span>] &#123;</span><br><span class="line">		fmt.Printf(<span class="string">&quot;delete: %d \n&quot;</span>, e)</span><br><span class="line">		tree.Delete(<span class="keyword">int64</span>(e))</span><br><span class="line">		err := tree.Check()</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			fmt.Println(err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>本文的全部代码在 <a target="_blank" rel="noopener" href="https://github.com/jimuyang/lets-go/blob/master/algorithms/RedBlackTree.go">https://github.com/jimuyang/lets-go/blob/master/algorithms/RedBlackTree.go</a> 欢迎意见和交流😊</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/%E7%AE%97%E6%B3%95/" rel="tag"># 算法</a>
+              <a href="/blog/tags/Golang/" rel="tag"># Golang</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/blog/2019/11/24/Java%E8%B8%A9%E5%9D%91%E5%8F%B2/" rel="prev" title="Java踩坑史">
+                  <i class="fa fa-chevron-left"></i> Java踩坑史
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/blog/2019/12/22/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84RPC%E5%AE%9E%E7%8E%B0/" rel="next" title="基于Netty的RPC实现">
+                  基于Netty的RPC实现 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jimu Yang</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/blog/js/comments.js"></script><script src="/blog/js/utils.js"></script><script src="/blog/js/motion.js"></script><script src="/blog/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
